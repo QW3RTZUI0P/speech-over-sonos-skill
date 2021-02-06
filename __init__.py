@@ -37,7 +37,7 @@ class SpeechOverSonos(MycroftSkill):
 
     # function to output speech over the Sonos speaker using the TTS feature of the node js sonos server
     def output_speech_on_sonos(self, message):
-        SonosMusicController.sonos_api(action = "say/" + str(message.data.get("utterance")) + "/de-de")
+        SpeechOverSonos.sonos_api(action = "say/" + str(message.data.get("utterance")) + "/de-de")
 
 
 def create_skill():
