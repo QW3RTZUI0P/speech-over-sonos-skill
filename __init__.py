@@ -54,11 +54,10 @@ class SpeechOverSonos(MycroftSkill):
         state = requests.get(SpeechOverSonos.url + "state")
         state_json = state.json()
         self.log.info("message: " + str(message))
-	if "playbackState" in state_json:
-            if state_json["playbackState"] == "PLAYING" or state_json["playbackState"] == "TRANSITIONING":
-                SpeechOverSonos.is_playing = True
-            else:
-                SpeechOverSonos.is_playing = False
+        if state_json.get("playbackState") == "PLAYING" or state_json.get("playbackState") == "TRANSITIONING":
+            SpeechOverSonos.is_playing = True
+        else:
+            SpeechOverSonos.is_playing = False
 
         SpeechOverSonos.sonos_api(action = "say/" + str(message.data.get("utterance")) + "/de-de")
         if SpeechOverSonos.is_playing == True:
