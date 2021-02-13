@@ -10,13 +10,3 @@ skillMetadata:
           type: text
           label: IP Address or Hostname
           value: ""
-
-    - name: Room
-      fields:
-        - name: room_explanation_label
-          type: label
-          label: The room your Mycroft device is located in
-        - name: room
-          type: text
-          label: room
-          value: ""

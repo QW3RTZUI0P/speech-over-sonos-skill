@@ -1,6 +1,7 @@
 from mycroft import MycroftSkill, intent_file_handler
 # used to communicate with the Sonos Node JS Server
 import requests
+from mycroft.api import DeviceApi
 
 
 class SpeechOverSonos(MycroftSkill):
@@ -16,7 +17,7 @@ class SpeechOverSonos(MycroftSkill):
 
     def initialize(self):
         SpeechOverSonos.sonos_server_ip = self.settings.get("sonos_server_ip")
-        SpeechOverSonos.room = self.settings.get("room")
+        SpeechOverSonos.room = str(DeviceApi().get()["description"])
         # putting the values in str() is necessary
         SpeechOverSonos.url = "http://" + str(SpeechOverSonos.sonos_server_ip) + ":5005/" + str(SpeechOverSonos.room) + "/"
 
