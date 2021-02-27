@@ -99,12 +99,12 @@ class SpeechOverSonos(MycroftSkill):
 
     @intent_handler("speech.in.room.intent")
     def speech_in_room(self, message):
-        message = message.data.get("message") 
+        message_to_say = message.data.get("message") 
         room = message.data.get("room")
         if room == None:
             room = SpeechOverSonos.room
 
-        url = "http://" + str(SonosMusicController.sonos_server_ip) + ":5005/" + str(room) + "/say/" + str(message) + "/de-de"
+        url = "http://" + str(SpeechOverSonos.sonos_server_ip) + ":5005/" + str(room) + "/say/" + str(message_to_say) + "/de-de"
         requests.get(url)
 
 
