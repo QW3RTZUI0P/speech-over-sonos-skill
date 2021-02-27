@@ -1,4 +1,4 @@
-from mycroft import MycroftSkill, intent_file_handler
+from mycroft import MycroftSkill, intent_handler
 from mycroft.api import DeviceApi
 import time
 # used to communicate with the Sonos Node JS Server
@@ -96,6 +96,16 @@ class SpeechOverSonos(MycroftSkill):
         #    if (next_transport_state == "STOPPED"):
         #SpeechOverSonos.speaker.remove_from_queue(0)
         #        finished = True
+
+    @intent_handler("speech.in.room.intent")
+    def speech_in_room(self, message):
+        message = message.data.get("message") 
+        room = message.data.get("room")
+        if room == None:
+            room = SpeechOverSonos.room
+
+        url = "http://" + str(SonosMusicController.sonos_server_ip) + ":5005/" + str(room) + "/say/" + str(message) + "/de-de"
+        requests.get(url)
 
 
 
