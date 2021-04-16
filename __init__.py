@@ -3,8 +3,9 @@ from mycroft.api import DeviceApi
 import time
 # used to communicate with the Sonos Node JS Server
 import requests
-
 import soco
+import os
+from .webserver import *
 
 
 
@@ -21,6 +22,9 @@ class SpeechOverSonos(MycroftSkill):
     is_playing = False
     played_uri = ""
 
+    # values for the webserver and thus the speech playback
+    audio_files_list = []
+
     # values for the soco package
     all_speakers = []
     speaker = None
@@ -34,6 +38,8 @@ class SpeechOverSonos(MycroftSkill):
         # putting the values in str() is necessary
         SpeechOverSonos.url = "http://" + str(SpeechOverSonos.sonos_server_ip) + ":5005/" + str(SpeechOverSonos.room) + "/"
 
+        # initialize server
+        SpeechOverSonos.initialize_server()
         # initializes soco
         SpeechOverSonos.initialize_soco()
 
@@ -41,6 +47,12 @@ class SpeechOverSonos(MycroftSkill):
         self.add_event("recognizer_loop:wakeword", self.activation_confirmation_noise_on_sonos)
         self.add_event("speak", self.output_speech_on_sonos)
 
+    def shutdown():
+        stop_server()
+
+    def initialize_server():
+        start_server()
+        SpeechOverSonos.audio_files_list = os.listdir(tts_directory_path)
 
     def initialize_soco():
         SpeechOverSonos.all_speakers = soco.discover()
@@ -48,10 +60,15 @@ class SpeechOverSonos(MycroftSkill):
             if current_speaker.player_name == SpeechOverSonos.room:
                 SpeechOverSonos.speaker = current_speaker
 
+        
+
 
     # general function to call the sonos api
     def sonos_api(action = ""):
         return requests.get(SpeechOverSonos.url + str(action))
+
+    def play_on_sonos(filename = ""):
+        pass
 
     # function to make the activation noise on the Sonos speaker
     # requires the fil start_listening.wav in the folder node-sonos-http-api/static/clips on the machine where the node js server runs
@@ -73,29 +90,45 @@ class SpeechOverSonos(MycroftSkill):
     # function to output speech over the Sonos speaker using the TTS feature of the node js sonos server
     def output_speech_on_sonos(self, message):
         # gets the current playback state of the Sonos speaker and stores it
-        current_transport_state = SpeechOverSonos.speaker.get_current_transport_info().get("current_transport_state")
-        if (current_transport_state == "PLAYING") or (current_transport_state == "TRANSITIONING"):
-            SpeechOverSonos.is_playing = True
-            SpeechOverSonos.played_uri = SpeechOverSonos.speaker.get_current_track_info().get("uri") 
+        # current_transport_state = SpeechOverSonos.speaker.get_current_transport_info().get("current_transport_state")
+        # if (current_transport_state == "PLAYING") or (current_transport_state == "TRANSITIONING"):
+        #     SpeechOverSonos.is_playing = True
+        #     SpeechOverSonos.played_uri = SpeechOverSonos.speaker.get_current_track_info().get("uri") 
 
-        else:
-            SpeechOverSonos.is_playing = False
+        #else:
+        #    SpeechOverSonos.is_playing = False
 
-        response = SpeechOverSonos.sonos_api(action = "say/" + str(message.data.get("utterance")) + "/de-de")
-        self.log.info("now finished with speech output")
+        #response = SpeechOverSonos.sonos_api(action = "say/" + str(message.data.get("utterance")) + "/de-de")
+        #self.log.info("now finished with speech output")
         
-        if SpeechOverSonos.is_playing == True:
+        #if SpeechOverSonos.is_playing == True:
             # SpeechOverSonos.speaker.next()
-            SpeechOverSonos.speaker.play_uri(SpeechOverSonos.played_uri)
+        #    SpeechOverSonos.speaker.play_uri(SpeechOverSonos.played_uri)
 
-        if SpeechOverSonos.has_been_playing == True:
-            SpeechOverSonos.speaker.play_uri(SpeechOverSonos.has_been_playing_uri)
+        #if SpeechOverSonos.has_been_playing == True:
+        #    SpeechOverSonos.speaker.play_uri(SpeechOverSonos.has_been_playing_uri)
         #while finished == False:
         #    time.sleep(0.2)
         #    next_transport_state = SpeechOverSonos.speaker.get_current_transport_info().get("current_transport_state")
         #    if (next_transport_state == "STOPPED"):
         #SpeechOverSonos.speaker.remove_from_queue(0)
         #        finished = True
+        file_to_play = ""
+        new_audio_files_list = os.listdir(tts_directory_path)
+        new_audio_files_list.sort()
+        audio_files_list.sort()
+        for i in range(0, audio_files_list.length):
+            if audio_files_list[i] == new_audio_files_list[i]:
+                continue
+            else:
+                file_to_play = new_audio_files_list[i]
+                SpeechOverSonos.play_on_sonos(filename: file_to_play)
+                return
+        file_to_play = new_audio_files_list.last
+        SpeechOverSonos.play_on_sonos(filename: file_to_play)
+
+
+
 
     @intent_handler("speech.in.room.intent")
     def speech_in_room(self, message):
