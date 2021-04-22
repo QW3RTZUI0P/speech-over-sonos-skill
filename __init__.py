@@ -5,7 +5,9 @@ import time
 import requests
 import soco
 import os
+import socket
 from .webserver import *
+import time
 
 
 
@@ -24,6 +26,7 @@ class SpeechOverSonos(MycroftSkill):
 
     # values for the webserver and thus the speech playback
     audio_files_list = []
+    ip_address = ""
 
     # values for the soco package
     all_speakers = []
@@ -39,7 +42,7 @@ class SpeechOverSonos(MycroftSkill):
         SpeechOverSonos.url = "http://" + str(SpeechOverSonos.sonos_server_ip) + ":5005/" + str(SpeechOverSonos.room) + "/"
 
         # initialize server
-        SpeechOverSonos.initialize_server()
+        SpeechOverSonos.initialize_server(self)
         # initializes soco
         SpeechOverSonos.initialize_soco()
 
@@ -50,9 +53,15 @@ class SpeechOverSonos(MycroftSkill):
     def shutdown():
         stop_server()
 
-    def initialize_server():
-        start_server()
-        SpeechOverSonos.audio_files_list = os.listdir(tts_directory_path)
+    def initialize_server(self):
+        #start_server()
+        #SpeechOverSonos.audio_files_list = os.listdir(tts_directory_path)
+        # gets the ip address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        SpeechOverSonos.ip_address = str(s.getsockname()[0])
+        self.log.info("ip: "+ SpeechOverSonos.ip_address)
+        s.close()
 
     def initialize_soco():
         SpeechOverSonos.all_speakers = soco.discover()
@@ -67,8 +76,10 @@ class SpeechOverSonos(MycroftSkill):
     def sonos_api(action = ""):
         return requests.get(SpeechOverSonos.url + str(action))
 
-    def play_on_sonos(filename = ""):
-        pass
+    def play_on_sonos(self, filename = ""):
+        #TODO: change the port value here
+        self.log.info("http://" + SpeechOverSonos.ip_address + ":8000/GoogleTTS/" + filename)
+        SpeechOverSonos.speaker.play_uri("http://" + SpeechOverSonos.ip_address + ":8000/GoogleTTS/" + filename)
 
     # function to make the activation noise on the Sonos speaker
     # requires the fil start_listening.wav in the folder node-sonos-http-api/static/clips on the machine where the node js server runs
@@ -113,19 +124,29 @@ class SpeechOverSonos(MycroftSkill):
         #    if (next_transport_state == "STOPPED"):
         #SpeechOverSonos.speaker.remove_from_queue(0)
         #        finished = True
+        time.sleep(0.3)
+        new_tts_directory_path = "/tmp/mycroft/cache/tts/GoogleTTS"
         file_to_play = ""
-        new_audio_files_list = os.listdir(tts_directory_path)
+        new_audio_files_list = os.listdir(new_tts_directory_path)
         new_audio_files_list.sort()
-        audio_files_list.sort()
-        for i in range(0, audio_files_list.length):
-            if audio_files_list[i] == new_audio_files_list[i]:
+        SpeechOverSonos.audio_files_list.sort()
+        for i in range(0, len(SpeechOverSonos.audio_files_list)):
+            if SpeechOverSonos.audio_files_list[i] == new_audio_files_list[i]:
                 continue
             else:
                 file_to_play = new_audio_files_list[i]
-                SpeechOverSonos.play_on_sonos(filename: file_to_play)
+                SpeechOverSonos.play_on_sonos(self = self, filename = file_to_play)
+                self.log.info("file: " + file_to_play)
+                SpeechOverSonos.audio_files_list = new_audio_files_list
+                time.sleep(0.3)
+                SpeechOverSonos.speaker.play()
                 return
-        file_to_play = new_audio_files_list.last
-        SpeechOverSonos.play_on_sonos(filename: file_to_play)
+        file_to_play = new_audio_files_list[-1]
+        SpeechOverSonos.play_on_sonos(self = self, filename = file_to_play)
+        SpeechOverSonos.audio_files_list = new_audio_files_list
+        time.sleep(0.3)
+        SpeechOverSonos.speaker.play()
+
 
 
 
