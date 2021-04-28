@@ -8,6 +8,7 @@ import os
 import socket
 from .webserver import *
 import time
+import subprocess
 
 
 
@@ -54,6 +55,9 @@ class SpeechOverSonos(MycroftSkill):
         stop_server()
 
     def initialize_server(self):
+        #TODO: check whether file exists already and only copy it if it doesn't
+        #copys start_listening.wav from mycroft_core to the webserver directory so that Sonos can access it
+        subprocess.call(["sh", "/opt/mycroft/skills/speech-over-sonos-skill.qw3rtzui0p/copy_start_listening_file.sh"])
         #start_server()
         #SpeechOverSonos.audio_files_list = os.listdir(tts_directory_path)
         # gets the ip address
@@ -78,8 +82,8 @@ class SpeechOverSonos(MycroftSkill):
 
     def play_on_sonos(self, filename = ""):
         #TODO: change the port value here
-        self.log.info("http://" + SpeechOverSonos.ip_address + ":8000/GoogleTTS/" + filename)
-        SpeechOverSonos.speaker.play_uri("http://" + SpeechOverSonos.ip_address + ":8000/GoogleTTS/" + filename)
+        self.log.info("http://" + SpeechOverSonos.ip_address + ":8000/" + filename)
+        SpeechOverSonos.speaker.play_uri("http://" + SpeechOverSonos.ip_address + ":8000/" + filename)
 
     # function to make the activation noise on the Sonos speaker
     # requires the fil start_listening.wav in the folder node-sonos-http-api/static/clips on the machine where the node js server runs
@@ -93,7 +97,7 @@ class SpeechOverSonos(MycroftSkill):
         else:
             SpeechOverSonos.has_been_playing = False
 
-        SpeechOverSonos.sonos_api(action = "clip/start_listening.wav/45")
+        SpeechOverSonos.play_on_sonos(self, filename = "start_listening.wav")
         # if SpeechOverSonos.is_playing == True:
             # this lets the music continu
             # SpeechOverSonos.speaker.next()
@@ -126,7 +130,7 @@ class SpeechOverSonos(MycroftSkill):
         #        finished = True
         time.sleep(0.3)
         new_tts_directory_path = "/tmp/mycroft/cache/tts/GoogleTTS"
-        file_to_play = ""
+        file_to_play = "GoogleTTS/"
         new_audio_files_list = os.listdir(new_tts_directory_path)
         new_audio_files_list.sort()
         SpeechOverSonos.audio_files_list.sort()
@@ -134,18 +138,18 @@ class SpeechOverSonos(MycroftSkill):
             if SpeechOverSonos.audio_files_list[i] == new_audio_files_list[i]:
                 continue
             else:
-                file_to_play = new_audio_files_list[i]
+                file_to_play += new_audio_files_list[i]
                 SpeechOverSonos.play_on_sonos(self = self, filename = file_to_play)
                 self.log.info("file: " + file_to_play)
                 SpeechOverSonos.audio_files_list = new_audio_files_list
-                time.sleep(0.3)
-                SpeechOverSonos.speaker.play()
+                #time.sleep(0.3)
+                #SpeechOverSonos.speaker.play()
                 return
-        file_to_play = new_audio_files_list[-1]
+        file_to_play += new_audio_files_list[-1]
         SpeechOverSonos.play_on_sonos(self = self, filename = file_to_play)
         SpeechOverSonos.audio_files_list = new_audio_files_list
-        time.sleep(0.3)
-        SpeechOverSonos.speaker.play()
+        #time.sleep(0.3)
+        #SpeechOverSonos.speaker.play()
 
 
 
