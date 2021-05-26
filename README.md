@@ -1,3 +1,4 @@
+Abandoned project. Contact me or file an issue if you're still interested.
 # <img src="https://raw.githack.com/FortAwesome/Font-Awesome/master/svgs/solid/comments.svg" card_color="#222222" width="50" height="50" style="vertical-align:bottom"/> Speech Over Sonos
 Lets mycroft speak over your own sonos system! no other speakers necessary
 
